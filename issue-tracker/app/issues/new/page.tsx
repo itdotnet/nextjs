@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { createIssueSchema } from '@/app/validationSchemas';
 import {z} from 'zod';
 import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 
 type IssueForm=z.infer<typeof createIssueSchema>;
 
@@ -20,6 +21,7 @@ const NewIssue = () => {
     resolver:zodResolver(createIssueSchema)
   });
   const [error, setError] = useState('');
+  const [isSubmitting,setSubmitting]=useState(false);
 
   return (
     <div className='max-w-xl'>
@@ -28,9 +30,11 @@ const NewIssue = () => {
         </Callout.Root>}
       <form className='space-y-5' onSubmit={handleSubmit(async (data) => {
         try {
+          setSubmitting(true);
           await axios.post('/api/issues', data);
           router.push('/issues');
         } catch (error) {
+          setSubmitting(false);
           setError('unExpected Error occourd');
         }
       })}>
@@ -40,7 +44,7 @@ const NewIssue = () => {
         <ErrorMessage>{errors.title?.message}</ErrorMessage>
         <Controller name="description" control={control} render={({ field }) => <SimpleMDE placeholder='Description' {...field} />} />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
-        <Button>Submit New Issue</Button>
+        <Button>Submit New Issue {isSubmitting && <Spinner/>}</Button>
       </form>
     </div>
   )
